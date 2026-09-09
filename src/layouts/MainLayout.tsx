@@ -75,15 +75,15 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Resultados', path: '/exames/resultados' },
     ],
   },
-  {
-    label: 'Farmácia',
-    icon: <Layers size={20} />,
-    children: [
-      { label: 'Nova Prescrição', path: '/prescricoes/nova' },
-      { label: 'Dispensação', path: '/farmacia/dispensacao' },
-    ],
-  },
-  {
+      {
+        label: 'Farmácia',
+        icon: <Layers size={20} />,
+        children: [
+          { label: 'Nova Prescrição', path: '/prescricoes/nova' },
+          { label: 'Dispensação', path: '/farmacia/dispensacao' },
+          { label: 'Almoxarifado', path: '/almoxarifado' },
+        ],
+      },  {
     label: 'Gestão',
     icon: <BarChart3 size={20} />,
     children: [

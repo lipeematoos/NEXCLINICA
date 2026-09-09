@@ -22,6 +22,7 @@ import PrescriptionForm from './features/prescriptions/PrescriptionForm';
 import QRValidation from './features/prescriptions/QRValidation';
 import PharmacyDispensing from './features/prescriptions/PharmacyDispensing';
 import PrintSettings from './features/administration/PrintSettings';
+import WarehouseDashboard from './features/warehouse/WarehouseDashboard';
 import Placeholder from './components/Placeholder';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -76,6 +77,10 @@ function AppRoutes() {
         <Route path="/prescricoes/nova" element={<PrescriptionForm />} />
         <Route path="/prescricoes/:id" element={<PrescriptionForm />} />
         <Route path="/farmacia/dispensacao" element={<PharmacyDispensing />} />
+
+        {/* Layer 3C: Warehouse / Stock Management */}
+        <Route path="/almoxarifado" element={<WarehouseDashboard />} />
+        <Route path="/almoxarifado/transferencias" element={<Placeholder title="Transferências" description="Gestão de transferências entre almoxarifado e unidades." />} />
 
         {/* Management */}
         <Route path="/gestao/indicadores" element={<Placeholder title="Indicadores" description="Painel de indicadores de gestão." />} />

@@ -3,12 +3,16 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp, getDemoTenantId } from '../../services/AppContext';
 import { Input, Select, Button, Textarea, Card } from '../../components/ui';
+import { SUSCardInput } from '../../components/clinical/SUSCardInput';
+import { HealthInsuranceInput } from '../../components/clinical/HealthInsuranceInput';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import type { SUSCard, HealthInsurance } from '../../domain/models';
 
 const STEPS = [
   { id: 'basic', label: 'Dados básicos' },
   { id: 'contact', label: 'Contato' },
   { id: 'emergency', label: 'Emergência' },
+  { id: 'coverage', label: 'SUS/Convênio' },
   { id: 'admin', label: 'Administrativo' },
   { id: 'consent', label: 'Consentimentos' },
 ];
@@ -35,6 +39,8 @@ export default function NewPatient() {
     notes: '',
     consentLgpd: false,
     consentTreatment: false,
+    susCard: undefined as SUSCard | undefined,
+    healthInsuranceData: undefined as HealthInsurance | undefined,
   });
 
   const update = (field: string, value: string | boolean) => {
@@ -43,7 +49,7 @@ export default function NewPatient() {
 
   const canNext = () => {
     if (step === 0) return form.fullName && form.birthDate && form.phone;
-    if (step === 4) return form.consentLgpd;
+    if (step === 5) return form.consentLgpd;
     return true;
   };
 
@@ -67,6 +73,8 @@ export default function NewPatient() {
       notes: form.notes || undefined,
       active: true,
       avatarColor: ['#17AEB5', '#22BFC5', '#52B788', '#F6B85A', '#E97878'][Math.floor(Math.random() * 5)],
+      susCard: form.susCard,
+      healthInsuranceData: form.healthInsuranceData,
     });
     navigate(`/pacientes/${patient.id}`);
   };
@@ -148,8 +156,24 @@ export default function NewPatient() {
             </>
           )}
 
-          {/* Step 3: Admin */}
+          {/* Step 3: SUS/Insurance Coverage */}
           {step === 3 && (
+            <>
+              <SUSCardInput
+                value={form.susCard}
+                onChange={(susCard) => setForm(prev => ({ ...prev, susCard }))}
+              />
+              <div className="border-t border-[#EDF9FA] pt-4 mt-4">
+                <HealthInsuranceInput
+                  value={form.healthInsuranceData}
+                  onChange={(insurance) => setForm(prev => ({ ...prev, healthInsuranceData: insurance }))}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Step 4: Admin */}
+          {step === 4 && (
             <>
               <Input label="Convênio / Plano de saúde" value={form.healthInsurance} onChange={e => update('healthInsurance', e.target.value)} />
               <Input label="Número da carteirinha" value={form.insuranceNumber} onChange={e => update('insuranceNumber', e.target.value)} />
@@ -157,8 +181,8 @@ export default function NewPatient() {
             </>
           )}
 
-          {/* Step 4: Consent */}
-          {step === 4 && (
+          {/* Step 5: Consent */}
+          {step === 5 && (
             <div className="space-y-4">
               <div className="p-4 rounded-xl bg-[#EDF9FA] border border-[#17AEB5]/20">
                 <h3 className="font-medium text-[#18383C] mb-2">Termos e Consentimentos</h3>

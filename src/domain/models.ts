@@ -85,6 +85,33 @@ export interface HealthcareProfessional extends BaseEntity {
 // PATIENT
 // ============================================
 
+export interface SUSCard {
+  number: string; // 15 digits
+  isValid?: boolean;
+  validatedAt?: string;
+  motherName?: string;
+  originCity?: string;
+  originState?: string;
+  active: boolean;
+  issuedAt?: string;
+  expiresAt?: string;
+  notes?: string;
+}
+
+export interface HealthInsurance {
+  hasInsurance: boolean;
+  insuranceCompany?: string;
+  insuranceNumber?: string;
+  insurancePlan?: string;
+  insuranceCategory?: 'INDIVIDUAL' | 'FAMILIAR' | 'EMPRESARIAL';
+  segmentType?: 'AMBULATORIAL' | 'HOSPITALAR' | 'ODONTOLOGICO' | 'COMPLETO';
+  validFrom?: string;
+  validUntil?: string;
+  accommodationType?: 'INDIVIDUAL' | 'FAMILIAR' | 'COLETIVO';
+  hasCopayment?: boolean;
+  notes?: string;
+}
+
 export interface Patient extends BaseEntity {
   tenantId: UUID;
   fullName: string;
@@ -99,10 +126,22 @@ export interface Patient extends BaseEntity {
   emergencyContactPhone?: string;
   address?: string;
   occupation?: string;
+  occupationType?: 'ASSALARIADO' | 'AUTÔNOMO' | 'DESEMPREGADO' | 'ESTUDANTE' | 'APOSENTADO' | 'OUTRO';
+  
+  // SUS Card
+  susCard?: SUSCard;
+  
+  // Health Insurance
+  healthInsuranceData?: HealthInsurance;
+  
+  // Legacy fields (backward compatibility)
   healthInsurance?: string;
   insuranceNumber?: string;
+  
   notes?: string;
+  clinicalNotes?: string;
   active: boolean;
+  status?: 'ATIVO' | 'INATIVO' | 'FALECIDO';
   avatarColor?: string;
 }
 
@@ -559,6 +598,257 @@ export interface TimelineEvent {
 }
 
 // ============================================
+// WAREHOUSE & STOCK MANAGEMENT
+// ============================================
+
+export type WarehouseType = 'CENTRAL' | 'REGIONAL';
+
+export interface Warehouse extends BaseEntity {
+  tenantId: UUID;
+  name: string;
+  code: string;
+  type: WarehouseType;
+  address?: string;
+  phone?: string;
+  email?: string;
+  managerId?: UUID;
+  managerName?: string;
+  minStockDays: number;
+  maxStockDays: number;
+  active: boolean;
+}
+
+export interface WarehouseStock extends BaseEntity {
+  warehouseId: UUID;
+  medicationId: UUID;
+  medicationName: string;
+  quantity: number;
+  quantityUnit: string;
+  batchNumber: string;
+  expiryDate: string;
+  inStock: boolean;
+  reserved?: number;
+  minStock: number;
+  maxStock: number;
+  currentDays: number;
+  unitCost: number;
+  totalValue: number;
+  lastMovementDate?: string;
+  lastMovementType?: StockMovementType;
+}
+
+export type StockMovementType = 
+  | 'PURCHASE'
+  | 'TRANSFER_IN'
+  | 'TRANSFER_OUT'
+  | 'DISTRIBUTION'
+  | 'DISPENSATION'
+  | 'LOSS'
+  | 'ADJUSTMENT'
+  | 'RETURN';
+
+export type StockTransferType = 'WAREHOUSE_TO_UNIT' | 'UNIT_TO_UNIT' | 'UNIT_TO_WAREHOUSE';
+export type StockTransferStatus = 'DRAFT' | 'REQUESTED' | 'APPROVED' | 'IN_TRANSIT' | 'RECEIVED' | 'CANCELLED';
+
+export interface StockTransfer extends BaseEntity {
+  tenantId: UUID;
+  transferNumber: string;
+  transferType: StockTransferType;
+  fromWarehouseId?: UUID;
+  fromPharmacyUnitId?: UUID;
+  toWarehouseId?: UUID;
+  toPharmacyUnitId?: UUID;
+  status: StockTransferStatus;
+  items: StockTransferItem[];
+  requestedAt: string;
+  requestedBy: UUID;
+  approvedAt?: string;
+  approvedBy?: UUID;
+  shippedAt?: string;
+  receivedAt?: string;
+  receivedBy?: UUID;
+  notes?: string;
+  rejectionReason?: string;
+}
+
+export interface StockTransferItem {
+  id: UUID;
+  transferId: UUID;
+  medicationId: UUID;
+  medicationName: string;
+  requestedQuantity: number;
+  approvedQuantity?: number;
+  receivedQuantity?: number;
+  quantityUnit: string;
+  batchNumber?: string;
+  expiryDate?: string;
+  status: 'PENDING' | 'APPROVED' | 'SHIPPED' | 'RECEIVED' | 'PARTIAL' | 'CANCELLED';
+  notes?: string;
+}
+
+export interface StockMovement extends BaseEntity {
+  tenantId: UUID;
+  medicationId: UUID;
+  medicationName: string;
+  movementType: StockMovementType;
+  quantity: number;
+  quantityUnit: string;
+  previousQuantity: number;
+  newQuantity: number;
+  fromLocationId?: UUID;
+  fromLocationType?: 'CENTRAL_WAREHOUSE' | 'PHARMACY_UNIT' | 'EXTERNAL';
+  toLocationId?: UUID;
+  toLocationType?: 'CENTRAL_WAREHOUSE' | 'PHARMACY_UNIT';
+  batchNumber: string;
+  expiryDate: string;
+  documentNumber?: string;
+  relatedEntityId?: UUID;
+  relatedEntityType?: 'PURCHASE' | 'PRESCRIPTION' | 'TRANSFER';
+  performedBy: UUID;
+  performedByName: string;
+  performedAt: string;
+  notes?: string;
+  reason?: string;
+}
+
+// ============================================
+// AI CLINICAL ASSISTANT
+// ============================================
+
+export type AISuggestionType = 'MEDICATION' | 'EXAM' | 'PROCEDURE' | 'REFERRAL' | 'LIFESTYLE';
+export type AISuggestionStatus = 'SUGGESTED' | 'ACCEPTED' | 'REJECTED' | 'MODIFIED';
+export type EvidenceLevel = 'A' | 'B' | 'C' | 'D';
+export type AlertSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+export interface AISuggestion extends BaseEntity {
+  tenantId: UUID;
+  encounterId: UUID;
+  patientId: UUID;
+  professionalId: UUID;
+  
+  suggestionType: AISuggestionType;
+  
+  title: string;
+  description: string;
+  category: string;
+  
+  medications?: SuggestedMedication[];
+  exams?: SuggestedExam[];
+  procedures?: string[];
+  referrals?: SuggestedReferral[];
+  lifestyleRecommendations?: string[];
+  
+  rationale: string;
+  evidenceLevel?: EvidenceLevel;
+  guidelines?: string[];
+  references?: string[];
+  
+  alerts?: AISuggestionAlert[];
+  
+  confidenceScore: number;
+  
+  status: AISuggestionStatus;
+  
+  acceptedAt?: string;
+  acceptedBy?: UUID;
+  rejectedAt?: string;
+  rejectedBy?: UUID;
+  rejectionReason?: string;
+  modifiedContent?: string;
+  
+  suggestedAt: string;
+}
+
+export interface SuggestedMedication {
+  medicationId: UUID;
+  medicationName: string;
+  genericName: string;
+  dosage: string;
+  pharmaceuticalForm: string;
+  dosageInstruction: string;
+  duration?: string;
+  quantity?: number;
+  
+  reason: string;
+  evidenceLevel?: EvidenceLevel;
+  
+  alerts?: {
+    drugInteraction?: string;
+    allergy?: string;
+    contraindication?: string;
+    sideEffect?: string;
+  };
+}
+
+export interface SuggestedExam {
+  examTypeId: string;
+  examName: string;
+  category: string;
+  reason: string;
+  priority?: 'ROUTINE' | 'URGENT';
+  preparation?: string;
+}
+
+export interface SuggestedReferral {
+  specialtyId: UUID;
+  specialtyName: string;
+  reason: string;
+  urgency?: 'NORMAL' | 'URGENT' | 'EMERGENCY';
+  suggestedProfessionals?: string[];
+}
+
+export interface AISuggestionAlert {
+  type: 'DRUG_INTERACTION' | 'ALLERGY' | 'CONTRAINDICATION' | 'SIDE_EFFECT' | 'DUPLICATE_THERAPY';
+  severity: AlertSeverity;
+  message: string;
+  details?: string;
+  recommendation?: string;
+}
+
+export interface ClinicalProtocol extends BaseEntity {
+  name: string;
+  condition: string;
+  icd10Codes?: string[];
+  indications: string[];
+  firstLineMedications: ProtocolMedication[];
+  secondLineMedications?: ProtocolMedication[];
+  suggestedExams?: ProtocolExam[];
+  lifestyleRecommendations?: string[];
+  referralCriteria?: {
+    specialty: string;
+    urgency: 'NORMAL' | 'URGENT' | 'EMERGENCY';
+    criteria: string;
+  }[];
+  evidenceLevel: EvidenceLevel;
+  guidelines: string[];
+  lastUpdated: string;
+  reviewedBy?: string;
+  approvedAt?: string;
+}
+
+export interface ProtocolMedication {
+  id: UUID;
+  medicationId: UUID;
+  name: string;
+  genericName: string;
+  dosage: string;
+  dosageInstruction: string;
+  duration?: string;
+  maxDailyDose?: string;
+  contraindications?: string[];
+  sideEffects?: string[];
+  pregnancyCategory?: 'A' | 'B' | 'C' | 'D' | 'X';
+}
+
+export interface ProtocolExam {
+  examTypeId: string;
+  examName: string;
+  category: string;
+  reason: string;
+  priority?: 'ROUTINE' | 'URGENT';
+}
+
+// ============================================
 // UI DISPLAY HELPERS
 // ============================================
 
@@ -665,4 +955,43 @@ export const EXAM_REQUEST_STATUS_LABELS: Record<ExamRequestStatus, string> = {
   IN_ANALYSIS: 'Em Análise',
   COMPLETED: 'Concluído',
   CANCELLED: 'Cancelado',
+};
+
+export const WAREHOUSE_TYPE_LABELS: Record<WarehouseType, string> = {
+  CENTRAL: 'Central',
+  REGIONAL: 'Regional',
+};
+
+export const STOCK_MOVEMENT_TYPE_LABELS: Record<StockMovementType, string> = {
+  PURCHASE: 'Compra',
+  TRANSFER_IN: 'Transferência Entrada',
+  TRANSFER_OUT: 'Transferência Saída',
+  DISTRIBUTION: 'Distribuição',
+  DISPENSATION: 'Dispensação',
+  LOSS: 'Perda',
+  ADJUSTMENT: 'Ajuste',
+  RETURN: 'Devolução',
+};
+
+export const STOCK_TRANSFER_STATUS_LABELS: Record<StockTransferStatus, string> = {
+  DRAFT: 'Rascunho',
+  REQUESTED: 'Solicitado',
+  APPROVED: 'Aprovado',
+  IN_TRANSIT: 'Em Trânsito',
+  RECEIVED: 'Recebido',
+  CANCELLED: 'Cancelado',
+};
+
+export const EVIDENCE_LEVEL_LABELS: Record<EvidenceLevel, string> = {
+  A: 'Alta (Nível A)',
+  B: 'Moderada (Nível B)',
+  C: 'Baixa (Nível C)',
+  D: 'Muito Baixa (Nível D)',
+};
+
+export const ALERT_SEVERITY_LABELS: Record<AlertSeverity, string> = {
+  LOW: 'Baixa',
+  MEDIUM: 'Média',
+  HIGH: 'Alta',
+  CRITICAL: 'Crítica',
 };
