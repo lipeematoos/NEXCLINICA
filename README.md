@@ -21,9 +21,11 @@
 src/
 ├── components/          # Componentes reutilizáveis
 │   ├── ui/             # Componentes básicos (Button, Card, Modal, etc.)
+│   ├── print/          # Componentes de impressão
 │   └── Placeholder.tsx # Páginas placeholder
 ├── domain/             # Modelos de domínio
 │   ├── models.ts       # Todas as interfaces e tipos
+│   ├── printModels.ts  # Modelos de documentos imprimíveis
 │   └── repositories.ts # Interfaces de repositório
 ├── features/           # Features por camada
 │   ├── dashboard/      # Dashboard principal
@@ -36,11 +38,13 @@ src/
 │   ├── measurements/   # Medidas e evolução
 │   ├── professionals/  # Profissionais de saúde
 │   ├── specialties/    # Especialidades
-│   └── administration/ # Administração
+│   └── administration/ # Administração + Configurações de Impressão
 ├── infrastructure/     # Infraestrutura
 │   └── demo/           # Modo demo com dados fictícios
 ├── layouts/            # Layouts de página
 ├── services/           # Serviços e contexto
+├── utils/              # Utilitários
+│   └── printUtils.ts   # Geração de HTML para impressão
 └── App.tsx            # Rotas principais
 ```
 
@@ -143,6 +147,28 @@ Status:
 - **Validação Pública** — Página `/validar` para verificar receitas
 - **Dispensação** — Registro de retirada de medicamentos
 - **Envio por E-mail** — Template pronto (simulado)
+
+### 🖨️ Impressão de Documentos (Consultórios Particulares)
+
+Para consultórios que não possuem farmácia integrada, o sistema gera documentos profissionais prontos para impressão:
+
+- **Receituário Médico** — Layout A4 com cabeçalho do consultório, dados do paciente, medicamentos com posologia, assinatura e QR Code
+- **Ficha do Paciente** — Resumo clínico completo com dados pessoais, histórico, atendimentos recentes, medidas e prescrições
+- **Atestado Médico** — Comparecimento, saúde ou licença médica (em desenvolvimento)
+- **Encaminhamento** — Para especialistas com resumo clínico (em desenvolvimento)
+- **Solicitação de Exames** — Guia de exames com instruções (em desenvolvimento)
+
+**Configurações de Impressão:**
+- Personalização do cabeçalho (nome, endereço, telefone, e-mail do consultório)
+- Seleção do tamanho do papel (A4, A5, Letter)
+- Opção de incluir QR Code nas receitas
+- Mensagem personalizada no rodapé
+- Pré-visualização em tempo real
+
+**Acesso:**
+- Receituário: Após emitir prescrição, clique em "Imprimir"
+- Ficha do Paciente: No Paciente 360°, clique em "Imprimir Ficha"
+- Configurações: Administração → Impressão
 
 ### ✅ Camada 6: Gestão / Administração
 

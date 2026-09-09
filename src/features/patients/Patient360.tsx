@@ -3,12 +3,14 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp, getDemoProfessionalId } from '../../services/AppContext';
 import { Card, Avatar, Tabs, StatusBadge, Button, EmptyState } from '../../components/ui';
+import { PrintButton } from '../../components/print/PrintComponents';
 import {
   ArrowLeft, Phone, Mail, Calendar, MapPin, Briefcase,
-  Clock, Activity, FileText, Ruler, ClipboardList, Heart
+  Clock, Activity, FileText, Ruler, ClipboardList, Heart, Printer
 } from 'lucide-react';
-import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_TYPE_LABELS, MEASUREMENT_TYPES } from '../../domain/models';
+import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_TYPE_LABELS, MEASUREMENT_TYPES, GENDER_LABELS } from '../../domain/models';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { calculateAge } from '../../utils/printUtils';
 
 export default function Patient360() {
   const { id } = useParams<{ id: string }>();
@@ -29,6 +31,7 @@ export default function Patient360() {
   const documents = repos.documents.findByPatient(id);
   const nutrition = repos.nutrition.findByPatient(id);
   const timeline = repos.timeline.findByPatient(id);
+  const prescriptions = repos.prescriptions.findByPatient(id);
 
   const calculateAge = (birthDate: string) => {
     const today = new Date();
@@ -109,13 +112,20 @@ export default function Patient360() {
               {patient.occupation && <span className="flex items-center gap-1"><Briefcase size={14} /> {patient.occupation}</span>}
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 items-end">
             {nextAppt && (
               <div className="text-right">
                 <p className="text-xs text-[#6F8C90]">Próximo atendimento</p>
                 <p className="text-sm font-medium text-[#17AEB5]">{formatDate(nextAppt.startDateTime)}</p>
               </div>
             )}
+            <PrintButton
+              documentType="PATIENT_SUMMARY"
+              data={buildPrintablePatientSummary(patient, encounters, measurements, prescriptions, repos)}
+              title="Imprimir Ficha do Paciente"
+              variant="secondary"
+              size="sm"
+            />
           </div>
         </div>
       </Card>
@@ -425,4 +435,85 @@ export default function Patient360() {
       )}
     </div>
   );
+}
+
+// ============================================
+// HELPER: Build Printable Patient Summary
+// ============================================
+
+function buildPrintablePatientSummary(
+  patient: any,
+  encounters: any[],
+  measurements: any[],
+  prescriptions: any[],
+  repos: any
+) {
+  const recentEncounters = encounters
+    .filter(e => e.status === 'COMPLETED')
+    .sort((a, b) => new Date(b.encounterDate).getTime() - new Date(a.encounterDate).getTime())
+    .slice(0, 5)
+    .map(e => {
+      const prof = repos.professionals.findById(e.professionalId);
+      const spec = repos.specialties.findById(e.specialtyId);
+      return {
+        date: e.encounterDate,
+        professional: prof?.personName || '',
+        specialty: spec?.name || '',
+        chiefComplaint: e.chiefComplaint || '',
+        diagnosis: e.assessment || '',
+      };
+    });
+
+  const recentMeasurements = measurements
+    .sort((a, b) => new Date(b.measuredAt).getTime() - new Date(a.measuredAt).getTime())
+    .slice(0, 10)
+    .map(m => {
+      const typeInfo = MEASUREMENT_TYPES.find(t => t.code === m.type);
+      return {
+        type: typeInfo?.label || m.type,
+        value: m.value,
+        unit: m.unit,
+        date: m.measuredAt,
+      };
+    });
+
+  const recentPrescriptions = prescriptions
+    .sort((a, b) => new Date(b.issuedAt).getTime() - new Date(a.issuedAt).getTime())
+    .slice(0, 5)
+    .map(p => {
+      const prof = repos.professionals.findById(p.professionalId);
+      return {
+        date: p.issuedAt,
+        medications: p.medications.map((m: any) => m.name),
+        professional: prof?.personName || '',
+      };
+    });
+
+  return {
+    header: {
+      clinicName: 'NEXCLÍNICA — Consultório',
+      clinicAddress: 'Av. Paulista, 1000 — Sala 501, São Paulo/SP',
+      clinicPhone: '(11) 3000-0000',
+    },
+    patient: {
+      fullName: patient.fullName,
+      birthDate: patient.birthDate,
+      age: calculateAge(patient.birthDate),
+      gender: patient.gender ? (GENDER_LABELS[patient.gender] || patient.gender) : '',
+      cpf: patient.cpf,
+      rg: patient.rg,
+      phone: patient.phone,
+      email: patient.email,
+      address: patient.address,
+      occupation: patient.occupation,
+      healthInsurance: patient.healthInsurance,
+      insuranceNumber: patient.insuranceNumber,
+      emergencyContactName: patient.emergencyContactName,
+      emergencyContactPhone: patient.emergencyContactPhone,
+    },
+    recentEncounters,
+    recentMeasurements,
+    recentPrescriptions,
+    printedAt: new Date().toISOString(),
+  };
 }

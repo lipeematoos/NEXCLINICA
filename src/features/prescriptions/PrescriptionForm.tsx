@@ -3,10 +3,12 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useApp, getDemoProfessionalId, getDemoTenantId } from '../../services/AppContext';
 import { Card, Button, Input, Select, Avatar, StatusBadge, Modal, EmptyState } from '../../components/ui';
+import { PrintButton } from '../../components/print/PrintComponents';
 import { QRCodeSVG } from 'qrcode.react';
 import { FileText, Plus, Trash2, Send, Copy, Check, ArrowLeft, Pill, Shield } from 'lucide-react';
-import { PRESCRIPTION_TYPE_LABELS, PRESCRIPTION_STATUS_LABELS } from '../../domain/models';
-import type { PrescriptionType, PrescriptionMedication } from '../../domain/models';
+import { PRESCRIPTION_TYPE_LABELS, PRESCRIPTION_STATUS_LABELS, GENDER_LABELS } from '../../domain/models';
+import type { PrescriptionType, PrescriptionMedication, Prescription, Patient, HealthcareProfessional, Specialty } from '../../domain/models';
+import { calculateAge } from '../../utils/printUtils';
 
 export default function PrescriptionForm() {
   const { encounterId, patientId } = useParams<{ encounterId?: string; patientId?: string }>();
@@ -441,7 +443,13 @@ function PrescriptionView({ prescriptionId, onBack }: { prescriptionId: string; 
       </Card>
 
       {/* Actions */}
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
+        <PrintButton
+          documentType="PRESCRIPTION"
+          data={buildPrintablePrescription(rx, patient, professional, specialty)}
+          title="Imprimir Receituário"
+          variant="secondary"
+        />
         <Button variant="secondary">
           <Send size={16} /> Enviar por E-mail
         </Button>
@@ -449,4 +457,66 @@ function PrescriptionView({ prescriptionId, onBack }: { prescriptionId: string; 
       </div>
     </div>
   );
+}
+
+// ============================================
+// HELPER: Build Printable Prescription Data
+// ============================================
+
+function buildPrintablePrescription(
+  rx: Prescription,
+  patient: Patient | null | undefined,
+  professional: HealthcareProfessional | undefined,
+  specialty: Specialty | undefined
+) {
+  if (!patient || !professional || !specialty) return {};
+
+  return {
+    header: {
+      clinicName: 'NEXCLÍNICA — Consultório',
+      clinicAddress: 'Av. Paulista, 1000 — Sala 501, São Paulo/SP',
+      clinicPhone: '(11) 3000-0000',
+      clinicEmail: 'contato@nexclinica.demo',
+      professionalName: professional.personName,
+      professionalCouncil: professional.professionalCouncil,
+      councilNumber: professional.councilNumber,
+      specialty: specialty.name,
+    },
+    prescription: {
+      prescriptionNumber: rx.prescriptionNumber,
+      issueDate: rx.issuedAt,
+      validUntil: rx.validUntil,
+      prescriptionType: rx.prescriptionType,
+    },
+    patient: {
+      fullName: patient.fullName,
+      birthDate: patient.birthDate,
+      age: calculateAge(patient.birthDate),
+      gender: patient.gender ? (GENDER_LABELS[patient.gender] || patient.gender) : '',
+      cpf: patient.cpf,
+      phone: patient.phone,
+    },
+    medications: rx.medications.map(med => ({
+      name: med.name,
+      genericName: med.genericName,
+      dosage: med.dosage,
+      pharmaceuticalForm: med.pharmaceuticalForm,
+      dosageInstruction: med.dosageInstruction,
+      duration: med.duration,
+      quantity: med.quantity,
+      quantityUnit: med.quantityUnit,
+      notes: med.notes,
+    })),
+    instructions: rx.instructions,
+    signature: {
+      city: 'São Paulo',
+      date: rx.issuedAt,
+      professionalName: professional.personName,
+      councilNumber: `${professional.professionalCouncil} ${professional.councilNumber}`,
+    },
+    footer: {
+      warning: 'Este receituário foi emitido eletronicamente pelo sistema NEXCLÍNICA.',
+      verificationUrl: `nexclinica.demo/validar?code=${rx.accessCode}`,
+    },
+  };
 }

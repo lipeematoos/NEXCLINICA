@@ -100,6 +100,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Usuários', path: '/admin/usuarios' },
       { label: 'Unidades', path: '/admin/unidades' },
       { label: 'Farmácias', path: '/admin/farmacias' },
+      { label: 'Impressão', path: '/admin/impressao' },
       { label: 'Configurações', path: '/admin/configuracoes' },
     ],
   },

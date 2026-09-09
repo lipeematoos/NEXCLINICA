@@ -21,6 +21,7 @@ import NursingTriage from './features/nursing/NursingTriage';
 import PrescriptionForm from './features/prescriptions/PrescriptionForm';
 import QRValidation from './features/prescriptions/QRValidation';
 import PharmacyDispensing from './features/prescriptions/PharmacyDispensing';
+import PrintSettings from './features/administration/PrintSettings';
 import Placeholder from './components/Placeholder';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -86,6 +87,7 @@ function AppRoutes() {
         <Route path="/admin/usuarios" element={<Administration />} />
         <Route path="/admin/unidades" element={<Administration />} />
         <Route path="/admin/farmacias" element={<Administration />} />
+        <Route path="/admin/impressao" element={<PrintSettings />} />
         <Route path="/admin/configuracoes" element={<Administration />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
