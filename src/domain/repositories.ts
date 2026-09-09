@@ -1,9 +1,10 @@
-// Repository interfaces for NEXCLÍNICA
+// NEXCLÍNICA — Repository Interfaces (Extended with 6 Layers)
 import type {
   UUID, Patient, HealthcareProfessional, Specialty, Appointment,
   ClinicalEncounter, ClinicalEvolution, PatientMeasurement,
   ExamRecord, PatientDocument, NutritionAssessment, SystemUser,
-  ClinicUnit, TimelineEvent
+  ClinicUnit, TimelineEvent, PatientQueue, NursingRecord,
+  ExamRequest, Prescription, Medication, Pharmacy
 } from './models';
 
 export interface PatientRepository {
@@ -86,6 +87,56 @@ export interface TimelineRepository {
   findByPatient(patientId: UUID): TimelineEvent[];
 }
 
+// NEW: Layer 1 - Queue
+export interface QueueRepository {
+  findAll(): PatientQueue[];
+  findById(id: UUID): PatientQueue | undefined;
+  findByUnit(unitId: UUID): PatientQueue[];
+  findActive(): PatientQueue[];
+  create(data: Omit<PatientQueue, 'id' | 'createdAt' | 'updatedAt'>): PatientQueue;
+  update(id: UUID, data: Partial<PatientQueue>): PatientQueue | undefined;
+}
+
+// NEW: Layer 2 - Nursing
+export interface NursingRepository {
+  findByPatient(patientId: UUID): NursingRecord[];
+  findById(id: UUID): NursingRecord | undefined;
+  create(data: Omit<NursingRecord, 'id' | 'createdAt' | 'updatedAt'>): NursingRecord;
+}
+
+// NEW: Layer 4 - Exam Requests
+export interface ExamRequestRepository {
+  findAll(): ExamRequest[];
+  findById(id: UUID): ExamRequest | undefined;
+  findByPatient(patientId: UUID): ExamRequest[];
+  create(data: Omit<ExamRequest, 'id' | 'createdAt' | 'updatedAt'>): ExamRequest;
+  update(id: UUID, data: Partial<ExamRequest>): ExamRequest | undefined;
+}
+
+// NEW: Layer 5 - Prescriptions
+export interface PrescriptionRepository {
+  findAll(): Prescription[];
+  findById(id: UUID): Prescription | undefined;
+  findByPatient(patientId: UUID): Prescription[];
+  findByAccessCode(code: string): Prescription | undefined;
+  findByPrescriptionNumber(number: string): Prescription | undefined;
+  create(data: Omit<Prescription, 'id' | 'createdAt' | 'updatedAt'>): Prescription;
+  update(id: UUID, data: Partial<Prescription>): Prescription | undefined;
+}
+
+// NEW: Medications catalog
+export interface MedicationRepository {
+  findAll(): Medication[];
+  findById(id: UUID): Medication | undefined;
+  search(query: string): Medication[];
+}
+
+// NEW: Pharmacies
+export interface PharmacyRepository {
+  findAll(): Pharmacy[];
+  findById(id: UUID): Pharmacy | undefined;
+}
+
 // Repository container
 export interface Repositories {
   patients: PatientRepository;
@@ -101,4 +152,10 @@ export interface Repositories {
   users: UserRepository;
   units: UnitRepository;
   timeline: TimelineRepository;
+  queue: QueueRepository;
+  nursing: NursingRepository;
+  examRequests: ExamRequestRepository;
+  prescriptions: PrescriptionRepository;
+  medications: MedicationRepository;
+  pharmacies: PharmacyRepository;
 }

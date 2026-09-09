@@ -35,6 +35,21 @@ const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
+    label: 'Recepção',
+    icon: <Users size={20} />,
+    children: [
+      { label: 'Fila de Espera', path: '/recepcao/fila' },
+      { label: 'Tela de Chamada', path: '/chamada' },
+    ],
+  },
+  {
+    label: 'Enfermagem',
+    icon: <ClipboardList size={20} />,
+    children: [
+      { label: 'Triagem', path: '/enfermagem/triagem' },
+    ],
+  },
+  {
     label: 'Atendimentos',
     icon: <Stethoscope size={20} />,
     children: [
@@ -44,12 +59,28 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     label: 'Clínico',
-    icon: <ClipboardList size={20} />,
+    icon: <Activity size={20} />,
     children: [
       { label: 'Evoluções', path: '/clinico/evolucoes' },
       { label: 'Medidas', path: '/clinico/medidas' },
       { label: 'Documentos', path: '/clinico/documentos' },
       { label: 'Exames', path: '/clinico/exames' },
+    ],
+  },
+  {
+    label: 'Exames',
+    icon: <FileText size={20} />,
+    children: [
+      { label: 'Solicitações', path: '/exames/solicitacoes' },
+      { label: 'Resultados', path: '/exames/resultados' },
+    ],
+  },
+  {
+    label: 'Farmácia',
+    icon: <Layers size={20} />,
+    children: [
+      { label: 'Nova Prescrição', path: '/prescricoes/nova' },
+      { label: 'Dispensação', path: '/farmacia/dispensacao' },
     ],
   },
   {
@@ -68,6 +99,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Especialidades', path: '/admin/especialidades' },
       { label: 'Usuários', path: '/admin/usuarios' },
       { label: 'Unidades', path: '/admin/unidades' },
+      { label: 'Farmácias', path: '/admin/farmacias' },
       { label: 'Configurações', path: '/admin/configuracoes' },
     ],
   },

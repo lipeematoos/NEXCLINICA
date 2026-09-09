@@ -1,16 +1,19 @@
-// Demo Repository Implementation — In-memory store for NEXCLÍNICA Demo Mode
+// NEXCLÍNICA — Demo Repository Implementation (Extended with 6 Layers)
 import { v4 as uuidv4 } from 'uuid';
 import type { Repositories } from '../../domain/repositories';
 import type {
   Patient, HealthcareProfessional, Specialty, Appointment,
   ClinicalEncounter, ClinicalEvolution, PatientMeasurement,
   ExamRecord, PatientDocument, NutritionAssessment, SystemUser,
-  ClinicUnit, TimelineEvent, UUID
+  ClinicUnit, TimelineEvent, UUID, PatientQueue, NursingRecord,
+  ExamRequest, Prescription, Medication, Pharmacy
 } from '../../domain/models';
 import {
   seedPatients, seedProfessionals, seedSpecialties, seedAppointments,
   seedEncounters, seedEvolutions, seedMeasurements, seedExams,
-  seedDocuments, seedNutrition, seedUsers, seedUnits, buildTimeline
+  seedDocuments, seedNutrition, seedUsers, seedUnits, buildTimeline,
+  seedPatientQueue, seedNursingRecords, seedExamRequests,
+  seedPrescriptions, seedMedications, seedPharmacies
 } from './seed';
 
 // In-memory mutable store
@@ -26,6 +29,12 @@ let documents: PatientDocument[] = [...seedDocuments];
 let nutrition: NutritionAssessment[] = [...seedNutrition];
 let users: SystemUser[] = [...seedUsers];
 let units: ClinicUnit[] = [...seedUnits];
+let patientQueue: PatientQueue[] = [...seedPatientQueue];
+let nursingRecords: NursingRecord[] = [...seedNursingRecords];
+let examRequests: ExamRequest[] = [...seedExamRequests];
+let prescriptions: Prescription[] = [...seedPrescriptions];
+let medications: Medication[] = [...seedMedications];
+let pharmacies: Pharmacy[] = [...seedPharmacies];
 
 function now() {
   return new Date().toISOString();
@@ -195,6 +204,93 @@ export const demoRepositories: Repositories = {
   timeline: {
     findByPatient: (patientId: UUID): TimelineEvent[] => buildTimeline(patientId),
   },
+
+  // NEW: Queue Repository
+  queue: {
+    findAll: () => [...patientQueue],
+    findById: (id: UUID) => patientQueue.find(q => q.id === id),
+    findByUnit: (unitId: UUID) => patientQueue.filter(q => q.unitId === unitId),
+    findActive: () => patientQueue.filter(q => ['WAITING', 'CALLED', 'IN_ATTENDANCE'].includes(q.status)),
+    create: (data) => {
+      const q: PatientQueue = { ...data, id: uuidv4(), createdAt: now(), updatedAt: now() };
+      patientQueue.push(q);
+      return q;
+    },
+    update: (id, data) => {
+      const idx = patientQueue.findIndex(q => q.id === id);
+      if (idx === -1) return undefined;
+      patientQueue[idx] = { ...patientQueue[idx], ...data, updatedAt: now() };
+      return patientQueue[idx];
+    },
+  },
+
+  // NEW: Nursing Repository
+  nursing: {
+    findByPatient: (patientId) => nursingRecords.filter(n => n.patientId === patientId),
+    findById: (id: UUID) => nursingRecords.find(n => n.id === id),
+    create: (data) => {
+      const n: NursingRecord = { ...data, id: uuidv4(), createdAt: now(), updatedAt: now() };
+      nursingRecords.push(n);
+      return n;
+    },
+  },
+
+  // NEW: Exam Request Repository
+  examRequests: {
+    findAll: () => [...examRequests],
+    findById: (id: UUID) => examRequests.find(e => e.id === id),
+    findByPatient: (patientId) => examRequests.filter(e => e.patientId === patientId),
+    create: (data) => {
+      const e: ExamRequest = { ...data, id: uuidv4(), createdAt: now(), updatedAt: now() };
+      examRequests.push(e);
+      return e;
+    },
+    update: (id, data) => {
+      const idx = examRequests.findIndex(e => e.id === id);
+      if (idx === -1) return undefined;
+      examRequests[idx] = { ...examRequests[idx], ...data, updatedAt: now() };
+      return examRequests[idx];
+    },
+  },
+
+  // NEW: Prescription Repository
+  prescriptions: {
+    findAll: () => [...prescriptions],
+    findById: (id: UUID) => prescriptions.find(p => p.id === id),
+    findByPatient: (patientId) => prescriptions.filter(p => p.patientId === patientId),
+    findByAccessCode: (code) => prescriptions.find(p => p.accessCode === code),
+    findByPrescriptionNumber: (number) => prescriptions.find(p => p.prescriptionNumber === number),
+    create: (data) => {
+      const p: Prescription = { ...data, id: uuidv4(), createdAt: now(), updatedAt: now() };
+      prescriptions.push(p);
+      return p;
+    },
+    update: (id, data) => {
+      const idx = prescriptions.findIndex(p => p.id === id);
+      if (idx === -1) return undefined;
+      prescriptions[idx] = { ...prescriptions[idx], ...data, updatedAt: now() };
+      return prescriptions[idx];
+    },
+  },
+
+  // NEW: Medication Repository
+  medications: {
+    findAll: () => [...medications],
+    findById: (id: UUID) => medications.find(m => m.id === id),
+    search: (query) => {
+      const q = query.toLowerCase();
+      return medications.filter(m =>
+        m.name.toLowerCase().includes(q) ||
+        m.genericName.toLowerCase().includes(q)
+      );
+    },
+  },
+
+  // NEW: Pharmacy Repository
+  pharmacies: {
+    findAll: () => [...pharmacies],
+    findById: (id: UUID) => pharmacies.find(p => p.id === id),
+  },
 };
 
 // Reset function for demo
@@ -211,4 +307,10 @@ export function resetDemoData() {
   nutrition = [...seedNutrition];
   users = [...seedUsers];
   units = [...seedUnits];
+  patientQueue = [...seedPatientQueue];
+  nursingRecords = [...seedNursingRecords];
+  examRequests = [...seedExamRequests];
+  prescriptions = [...seedPrescriptions];
+  medications = [...seedMedications];
+  pharmacies = [...seedPharmacies];
 }

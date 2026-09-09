@@ -2,7 +2,7 @@
 import React from 'react';
 import { useApp } from '../../services/AppContext';
 import { MetricCard, Card, Avatar, StatusBadge, SectionHeader } from '../../components/ui';
-import { Calendar, Users, Clock, TrendingUp, Activity, CheckCircle } from 'lucide-react';
+import { Calendar, Users, Clock, TrendingUp, Activity, CheckCircle, FileText, ClipboardList } from 'lucide-react';
 import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_TYPE_LABELS } from '../../domain/models';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 
@@ -66,33 +66,47 @@ export default function Dashboard() {
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <MetricCard
           title="Consultas hoje"
           value={todayAppts.length}
           subtitle={`${todayAppts.filter(a => a.status === 'CONFIRMADA').length} confirmadas`}
-          icon={<Calendar size={20} />}
+          icon={<Calendar size={18} />}
           color="primary"
         />
         <MetricCard
           title="Pacientes ativos"
           value={activePatients.length}
           subtitle={`${patients.length} cadastrados`}
-          icon={<Users size={20} />}
+          icon={<Users size={18} />}
           color="success"
         />
         <MetricCard
-          title="Atendimentos no mês"
-          value={completedThisMonth.length}
-          subtitle="Período atual"
-          icon={<Activity size={20} />}
+          title="Na fila"
+          value={repos.queue.findActive().length}
+          subtitle="Aguardando atendimento"
+          icon={<Clock size={18} />}
           color="warning"
         />
         <MetricCard
-          title="Próximos atendimentos"
-          value={todayAppts.filter(a => ['AGENDADA', 'CONFIRMADA'].includes(a.status)).length}
+          title="Atendimentos mês"
+          value={completedThisMonth.length}
+          subtitle="Período atual"
+          icon={<Activity size={18} />}
+          color="primary"
+        />
+        <MetricCard
+          title="Receitas emitidas"
+          value={repos.prescriptions.findAll().length}
+          subtitle="Total"
+          icon={<FileText size={18} />}
+          color="neutral"
+        />
+        <MetricCard
+          title="Exames pendentes"
+          value={repos.examRequests.findAll().filter(e => e.status === 'REQUESTED').length}
           subtitle="Aguardando"
-          icon={<Clock size={20} />}
+          icon={<ClipboardList size={18} />}
           color="neutral"
         />
       </div>

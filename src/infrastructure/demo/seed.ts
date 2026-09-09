@@ -104,6 +104,7 @@ export const seedUnits: ClinicUnit[] = [
     id: DEMO_IDS.UNIT,
     clinicId: DEMO_IDS.TENANT,
     name: 'NEXCLÍNICA — Unidade Centro',
+    type: 'MEDICAL',
     address: 'Av. Paulista, 1000 — Sala 501, São Paulo/SP',
     phone: '(11) 3000-0000',
     active: true,
@@ -119,6 +120,7 @@ export const seedUnits: ClinicUnit[] = [
 export const seedProfessionals: HealthcareProfessional[] = [
   {
     id: DEMO_IDS.PROFESSIONAL_1,
+    tenantId: DEMO_IDS.TENANT,
     personName: 'Dra. Camila Ferreira',
     specialtyId: DEMO_IDS.SPECIALTY_NUTRITION,
     professionalCouncil: 'CRN',
@@ -134,6 +136,7 @@ export const seedProfessionals: HealthcareProfessional[] = [
   },
   {
     id: DEMO_IDS.PROFESSIONAL_2,
+    tenantId: DEMO_IDS.TENANT,
     personName: 'Dr. Ricardo Mendes',
     specialtyId: DEMO_IDS.SPECIALTY_GENERAL,
     professionalCouncil: 'CRM',
@@ -149,6 +152,7 @@ export const seedProfessionals: HealthcareProfessional[] = [
   },
   {
     id: DEMO_IDS.PROFESSIONAL_3,
+    tenantId: DEMO_IDS.TENANT,
     personName: 'Dra. Beatriz Lopes',
     specialtyId: DEMO_IDS.SPECIALTY_PSYCHOLOGY,
     professionalCouncil: 'CRP',
@@ -668,6 +672,263 @@ export const seedUsers: SystemUser[] = [
     name: 'Juliana Reis',
     email: 'recepcao@nexclinica.demo',
     role: 'RECEPCIONISTA',
+    active: true,
+    createdAt: now,
+    updatedAt: now,
+  },
+];
+
+// ============================================
+// PATIENT QUEUE (Layer 1 - Reception)
+// ============================================
+
+export const seedPatientQueue: import('../../domain/models').PatientQueue[] = [
+  {
+    id: 'queue-001',
+    tenantId: DEMO_IDS.TENANT,
+    unitId: DEMO_IDS.UNIT,
+    patientId: DEMO_IDS.PATIENT_2,
+    queueNumber: 'A001',
+    queueType: 'NORMAL',
+    status: 'WAITING',
+    checkInTime: dateTimeFromNow(0, 8, 30),
+    notes: 'Check-up anual',
+    createdAt: dateTimeFromNow(0, 8, 30),
+    updatedAt: dateTimeFromNow(0, 8, 30),
+  },
+  {
+    id: 'queue-002',
+    tenantId: DEMO_IDS.TENANT,
+    unitId: DEMO_IDS.UNIT,
+    patientId: DEMO_IDS.PATIENT_4,
+    queueNumber: 'P001',
+    queueType: 'PRIORIDADE',
+    status: 'WAITING',
+    checkInTime: dateTimeFromNow(0, 8, 45),
+    notes: 'Hipertenso — acompanhamento',
+    createdAt: dateTimeFromNow(0, 8, 45),
+    updatedAt: dateTimeFromNow(0, 8, 45),
+  },
+  {
+    id: 'queue-003',
+    tenantId: DEMO_IDS.TENANT,
+    unitId: DEMO_IDS.UNIT,
+    patientId: DEMO_IDS.PATIENT_5,
+    queueNumber: 'A002',
+    queueType: 'NORMAL',
+    status: 'CALLED',
+    checkInTime: dateTimeFromNow(0, 8, 15),
+    calledTime: dateTimeFromNow(0, 9, 0),
+    destinationRoom: 'Sala 3',
+    createdAt: dateTimeFromNow(0, 8, 15),
+    updatedAt: dateTimeFromNow(0, 9, 0),
+  },
+];
+
+// ============================================
+// NURSING RECORDS (Layer 2 - Nursing/Triage)
+// ============================================
+
+export const seedNursingRecords: import('../../domain/models').NursingRecord[] = [
+  {
+    id: 'nursing-001',
+    patientId: DEMO_IDS.PATIENT_1,
+    professionalId: DEMO_IDS.PROFESSIONAL_1,
+    encounterId: 'enc-001',
+    recordedAt: dateTimeFromNow(-7, 9, 0),
+    bloodPressureSystolic: 120,
+    bloodPressureDiastolic: 80,
+    heartRate: 72,
+    temperature: 36.5,
+    respiratoryRate: 16,
+    oxygenSaturation: 98,
+    weight: 70.5,
+    height: 165,
+    bmi: 25.9,
+    chiefComplaint: 'Acompanhamento nutricional de rotina',
+    painLevel: 0,
+    riskClassification: 'VERDE',
+    priority: 'NORMAL',
+    notes: 'Paciente estável, sinais vitais normais',
+    createdAt: dateTimeFromNow(-7, 9, 0),
+    updatedAt: dateTimeFromNow(-7, 9, 0),
+  },
+];
+
+// ============================================
+// EXAM REQUESTS (Layer 4 - Exams)
+// ============================================
+
+export const seedExamRequests: import('../../domain/models').ExamRequest[] = [
+  {
+    id: 'exam-req-001',
+    patientId: DEMO_IDS.PATIENT_1,
+    encounterId: 'enc-002',
+    requestedBy: DEMO_IDS.PROFESSIONAL_1,
+    requestedAt: dateTimeFromNow(-35, 10, 30),
+    priority: 'ROUTINE',
+    exams: [
+      { examTypeId: 'hemograma', name: 'Hemograma completo', category: 'Laboratorial' },
+      { examTypeId: 'glicemia', name: 'Glicemia em jejum', category: 'Laboratorial' },
+      { examTypeId: 'colesterol', name: 'Colesterol total e frações', category: 'Laboratorial' },
+    ],
+    instructions: 'Jejum de 12 horas',
+    status: 'COMPLETED',
+    resultDate: daysFromNow(-30),
+    resultSummary: 'Exames dentro da normalidade. Colesterol total levemente elevado.',
+    createdAt: dateTimeFromNow(-35, 10, 30),
+    updatedAt: daysFromNow(-30),
+  },
+  {
+    id: 'exam-req-002',
+    patientId: DEMO_IDS.PATIENT_2,
+    requestedBy: DEMO_IDS.PROFESSIONAL_2,
+    requestedAt: dateTimeFromNow(-3, 14, 0),
+    priority: 'ROUTINE',
+    exams: [
+      { examTypeId: 'hemograma', name: 'Hemograma completo', category: 'Laboratorial' },
+    ],
+    instructions: 'Jejum de 8 horas',
+    status: 'REQUESTED',
+    createdAt: dateTimeFromNow(-3, 14, 0),
+    updatedAt: dateTimeFromNow(-3, 14, 0),
+  },
+];
+
+// ============================================
+// PRESCRIPTIONS (Layer 5 - Pharmacy)
+// ============================================
+
+export const seedPrescriptions: import('../../domain/models').Prescription[] = [
+  {
+    id: 'rx-001',
+    tenantId: DEMO_IDS.TENANT,
+    patientId: DEMO_IDS.PATIENT_1,
+    encounterId: 'enc-001',
+    professionalId: DEMO_IDS.PROFESSIONAL_1,
+    specialtyId: DEMO_IDS.SPECIALTY_NUTRITION,
+    prescriptionNumber: 'RX-2026-000142',
+    accessCode: '847291',
+    prescriptionType: 'SIMPLES',
+    medications: [
+      {
+        id: 'rx-med-001',
+        name: 'Ômega 3',
+        genericName: 'Ácidos graxos ômega-3',
+        dosage: '1000mg',
+        pharmaceuticalForm: 'Cápsula',
+        dosageInstruction: '1 cápsula ao dia',
+        frequency: '1x ao dia',
+        duration: '60 dias',
+        route: 'Oral',
+        timing: 'Após o almoço',
+        quantity: 60,
+        quantityUnit: 'cápsulas',
+        allowGeneric: true,
+      },
+      {
+        id: 'rx-med-002',
+        name: 'Vitamina D3',
+        genericName: 'Colecalciferol',
+        dosage: '2000 UI',
+        pharmaceuticalForm: 'Cápsula',
+        dosageInstruction: '1 cápsula ao dia',
+        frequency: '1x ao dia',
+        duration: '90 dias',
+        route: 'Oral',
+        timing: 'Após o café da manhã',
+        quantity: 90,
+        quantityUnit: 'cápsulas',
+        allowGeneric: true,
+      },
+    ],
+    instructions: 'Manter hidratação adequada. Tomar as vitaminas sempre após refeições.',
+    validUntil: daysFromNow(90),
+    status: 'ISSUED',
+    issuedAt: dateTimeFromNow(-7, 9, 50),
+    issuedBy: DEMO_IDS.PROFESSIONAL_1,
+    createdAt: dateTimeFromNow(-7, 9, 50),
+    updatedAt: dateTimeFromNow(-7, 9, 50),
+  },
+];
+
+// ============================================
+// MEDICATIONS CATALOG
+// ============================================
+
+export const seedMedications: import('../../domain/models').Medication[] = [
+  {
+    id: 'med-001',
+    tenantId: DEMO_IDS.TENANT,
+    name: 'Ômega 3',
+    genericName: 'Ácidos graxos ômega-3',
+    therapeuticClass: 'Suplemento alimentar',
+    requiresPrescription: false,
+    active: true,
+    presentations: [
+      { id: 'pres-001', medicationId: 'med-001', dosage: '1000mg', pharmaceuticalForm: 'Cápsula', concentration: '1000mg', packageSize: '60 cápsulas' },
+      { id: 'pres-002', medicationId: 'med-001', dosage: '500mg', pharmaceuticalForm: 'Cápsula', concentration: '500mg', packageSize: '30 cápsulas' },
+    ],
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: 'med-002',
+    tenantId: DEMO_IDS.TENANT,
+    name: 'Vitamina D3',
+    genericName: 'Colecalciferol',
+    therapeuticClass: 'Vitamina',
+    requiresPrescription: false,
+    active: true,
+    presentations: [
+      { id: 'pres-003', medicationId: 'med-002', dosage: '2000 UI', pharmaceuticalForm: 'Cápsula', concentration: '2000 UI', packageSize: '90 cápsulas' },
+    ],
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: 'med-003',
+    tenantId: DEMO_IDS.TENANT,
+    name: 'Losartana',
+    genericName: 'Losartana potássica',
+    therapeuticClass: 'Anti-hipertensivo',
+    requiresPrescription: true,
+    active: true,
+    presentations: [
+      { id: 'pres-004', medicationId: 'med-003', dosage: '50mg', pharmaceuticalForm: 'Comprimido', concentration: '50mg', packageSize: '30 comprimidos' },
+    ],
+    createdAt: now,
+    updatedAt: now,
+  },
+];
+
+// ============================================
+// PHARMACIES
+// ============================================
+
+export const seedPharmacies: import('../../domain/models').Pharmacy[] = [
+  {
+    id: 'pharmacy-001',
+    tenantId: DEMO_IDS.TENANT,
+    name: 'Farmácia Municipal — Unidade Centro',
+    type: 'PUBLIC',
+    cnpj: '12.345.678/0001-90',
+    address: 'Rua da Saúde, 200 — Centro',
+    phone: '(11) 3000-1000',
+    integratedWithNexclinica: true,
+    active: true,
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: 'pharmacy-002',
+    tenantId: DEMO_IDS.TENANT,
+    name: 'Drogaria Popular',
+    type: 'PRIVATE',
+    cnpj: '98.765.432/0001-10',
+    address: 'Av. Brasil, 500',
+    phone: '(11) 3000-2000',
+    integratedWithNexclinica: true,
     active: true,
     createdAt: now,
     updatedAt: now,
